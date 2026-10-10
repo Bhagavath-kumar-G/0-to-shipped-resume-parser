@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>0 to Shipped | Resume Parser</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="navbar">
+    <a href="#" class="logo">0 to <span>Shipped</span></a>
+    <span class="tag">RESUME ANALYSER</span>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">YOUR CAREER, DECODED.</p>
+      <h1>Your resume.<br><span>Under the microscope.</span></h1>
+      <p class="subtitle">
+        Upload your resume and explore your skills with a simple,
+        interactive resume analysis demo.
+      </p>
+    </section>
+
+    <section class="upload-card">
+      <div class="upload-icon">↑</div>
+      <h2>Drop your resume here</h2>
+      <p>Choose a PDF file to start your demo analysis.</p>
+
+      <label for="resume" class="upload-button">Choose PDF</label>
+      <input id="resume" type="file" accept=".pdf,application/pdf">
+
+      <p id="file-name" class="file-name">PDF files only</p>
+      <button id="analyse-btn" class="analyse-button" disabled>
+        Analyse Resume →
+      </button>
+      <p id="message" class="message" aria-live="polite"></p>
+    </section>
+
+    <section id="results" class="results hidden">
+      <div class="section-heading">
+        <p class="eyebrow">YOUR REPORT</p>
+        <h2>Resume breakdown</h2>
+        <p class="subtitle">Illustrative demo results, not a real ATS score.</p>
+      </div>
+
+      <div class="score-card">
+        <div class="score-circle">
+          <span id="score">0</span>
+          <small>/ 100</small>
+        </div>
+        <div>
+          <p class="eyebrow">RESUME SCORE</p>
+          <h3 id="score-label">Demo complete</h3>
+          <p id="score-description">Explore your sample skill report.</p>
+        </div>
+      </div>
+
+      <div class="skills-grid">
+        <div class="skills-card">
+          <h3>✓ Skills present</h3>
+          <p>Sample skills identified in this demo.</p>
+          <div id="present-skills" class="skill-list"></div>
+        </div>
+
+        <div class="skills-card">
+          <h3>＋ Skills to explore</h3>
+          <p>Example skills to compare against a target role.</p>
+          <div id="missing-skills" class="skill-list"></div>
+        </div>
+      </div>
+
+      <button id="reset-btn" class="reset-button">Analyse another PDF</button>
+    </section>
+
+    <p class="disclaimer">
+      DEMO PROJECT · Your PDF is not uploaded to a server.
+      Scores and skills shown are illustrative.
+    </p>
+  </main>
+</body>
+</html>
