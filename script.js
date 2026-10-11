@@ -1,191 +1,166 @@
+/* ========== 1. SETTINGS (easy to edit) ========== */
+const SKILLS = {
+  Languages: ['javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'go', 'rust', 'php', 'ruby', 'swift', 'kotlin', 'sql', 'html', 'css'],
+  Frameworks: ['react', 'vue', 'angular', 'node.js', 'express', 'django', 'flask', 'spring', 'next.js', 'tailwind', 'bootstrap', 'jquery'],
+  'Tools & Cloud': ['git', 'github', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'linux', 'figma', 'jira', 'ci/cd', 'postgresql', 'mysql', 'mongodb', 'redis', 'rest', 'graphql'],
+  Professional: ['leadership', 'communication', 'project management', 'agile', 'scrum', 'teamwork', 'problem solving', 'mentoring', 'analytics', 'testing'],
+};
+const ACTION_VERBS = ['built', 'led', 'shipped', 'launched', 'designed', 'developed', 'created', 'improved', 'reduced', 'increased', 'automated', 'optimized', 'managed', 'delivered', 'implemented', 'migrated', 'architected', 'mentored'];
+const SECTIONS = { Experience: /experience|employment|work history/i, Education: /education|university|college|degree/i, Skills: /skills|technologies|tech stack/i, Projects: /projects|portfolio/i };
 
-const resumeInput = document.getElementById("resume");
-const dropzone = document.getElementById("dropzone");
-const browseButton = document.getElementById("browse-btn");
-const selectedFileCard = document.getElementById("selected-file");
-const fileName = document.getElementById("file-name");
-const fileSize = document.getElementById("file-size");
-const removeButton = document.getElementById("remove-file");
-const analyseButton = document.getElementById("analyse-btn");
-const message = document.getElementById("message");
-const results = document.getElementById("results");
+const SAMPLE = `Maya Chen
+maya.chen@email.com | +1 415 555 0142 | linkedin.com/in/mayachen | github.com/mayachen
 
-let selectedFile = null;
+EXPERIENCE
+Frontend Developer, Brightloop (2022 - Present)
+- Built a React and TypeScript dashboard used by 12,000 customers, cutting load time by 38%.
+- Led a team of 4 engineers and shipped a Python REST API on AWS.
+- Automated deployments with Docker and CI/CD, reducing release time from 2 hours to 15 minutes.
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+PROJECTS
+- Launched an open-source Figma plugin with 1,500 GitHub stars.
 
-function showMessage(text) {
-  message.textContent = text;
-}
+EDUCATION
+B.S. Computer Science, University of Washington
 
-function formatFileSize(bytes) {
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
+SKILLS
+JavaScript, TypeScript, React, Node.js, Python, SQL, Git, Docker, Agile, Communication`;
 
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-}
+/* ========== 2. GRAB PAGE ELEMENTS ========== */
+const $ = (id) => document.getElementById(id);
+const resumeText = $('resumeText'), jobText = $('jobText'), errorBox = $('error'), results = $('results');
 
-function selectFile(file) {
-  showMessage("");
+/* ========== 3. NAVBAR ========== */
+$('menuBtn').addEventListener('click', () => {
+  const open = $('menu').classList.toggle('open');
+  $('menuBtn').setAttribute('aria-expanded', open);
+});
+$('menu').addEventListener('click', (e) => {
+  if (e.target.tagName === 'A') { $('menu').classList.remove('open'); $('menuBtn').setAttribute('aria-expanded', false); }
+});
+$('year').textContent = new Date().getFullYear();
 
+/* ========== 4. INPUT BUTTONS ========== */
+$('sampleBtn').addEventListener('click', () => { resumeText.value = SAMPLE; errorBox.hidden = true; });
+$('clearBtn').addEventListener('click', () => { resumeText.value = ''; jobText.value = ''; results.hidden = true; errorBox.hidden = true; });
+$('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
   if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.txt')) { showError('Upload a .txt file, or paste your resume text. PDF and Word files need a server to read.'); return; }
+  const reader = new FileReader();
+  reader.onload = () => { resumeText.value = reader.result; errorBox.hidden = true; };
+  reader.readAsText(file);
+});
+$('analyzeBtn').addEventListener('click', runAnalysis);
 
-  const isPdf =
-    file.type === "application/pdf" ||
-    file.name.toLowerCase().endsWith(".pdf");
+function showError(msg) { errorBox.textContent = msg; errorBox.hidden = false; }
 
-  if (!isPdf) {
-    showMessage("Please choose a PDF file.");
-    return;
+/* ========== 5. ANALYSIS ========== */
+function findSkills(text) {
+  const found = {};
+  for (const [group, list] of Object.entries(SKILLS)) {
+    const hits = list.filter((s) => new RegExp('(^|[^a-z0-9+#])' + s.replace(/[.+/]/g, '\\$&') + '($|[^a-z0-9+#])', 'i').test(text));
+    if (hits.length) found[group] = hits;
   }
-
-  if (file.size === 0) {
-    showMessage("This file is empty. Please choose another PDF.");
-    return;
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    showMessage("Please choose a PDF smaller than 10 MB.");
-    return;
-  }
-
-  selectedFile = file;
-
-  fileName.textContent = file.name;
-  fileSize.textContent = `${formatFileSize(file.size)} · Ready for demo`;
-
-  selectedFileCard.classList.remove("hidden");
-  dropzone.classList.add("hidden");
-  analyseButton.disabled = false;
+  return found;
 }
 
-function resetUpload() {
-  selectedFile = null;
-  resumeInput.value = "";
+function analyze(text, job) {
+  const lower = text.toLowerCase();
+  const words = text.trim().split(/\s+/).length;
+  const email = (text.match(/[\w.+-]+@[\w-]+\.[\w.]+/) || [])[0];
+  const phone = (text.match(/\+?\d[\d\s().-]{8,}\d/) || [])[0];
+  const linkedin = /linkedin\.com\/in\//i.test(text);
+  const github = /github\.com\//i.test(text);
+  const sections = Object.fromEntries(Object.entries(SECTIONS).map(([k, re]) => [k, re.test(text)]));
+  const skills = findSkills(text);
+  const skillCount = Object.values(skills).flat().length;
+  const verbs = ACTION_VERBS.filter((v) => new RegExp('\\b' + v + '\\b').test(lower));
+  const metrics = (text.match(/\d[\d,.]*\s?(%|k\b|x\b|\+)?/g) || []).filter((m) => /%|k|x|\+|\d{2,}/.test(m)).length;
 
-  selectedFileCard.classList.add("hidden");
-  dropzone.classList.remove("hidden");
-  analyseButton.disabled = true;
+  // Each category is scored 0-100, then averaged with weights.
+  const contact = Math.round(([email, phone, linkedin, github].filter(Boolean).length / 4) * 100);
+  const structure = Math.round((Object.values(sections).filter(Boolean).length / 4) * 100);
+  const skillScore = Math.min(100, skillCount * 10);
+  const impact = Math.min(100, metrics * 14 + verbs.length * 6);
+  const length = words >= 250 && words <= 800 ? 100 : words >= 120 ? 60 : 25;
+  const total = Math.round(contact * 0.2 + structure * 0.2 + skillScore * 0.25 + impact * 0.25 + length * 0.1);
 
-  showMessage("");
-}
+  const tips = [];
+  if (!email) tips.push('Add a professional email address at the top of your resume.');
+  if (!phone) tips.push('Add a phone number so recruiters can reach you quickly.');
+  if (!linkedin) tips.push('Add your LinkedIn profile link.');
+  if (!github && (skills.Languages || skills.Frameworks)) tips.push('Add your GitHub link so reviewers can see your code.');
+  Object.entries(sections).forEach(([name, ok]) => { if (!ok) tips.push(`Add a clear "${name}" heading so applicant tracking systems can find it.`); });
+  if (metrics < 3) tips.push('Add numbers to your bullets, such as users, revenue, time saved or percentages.');
+  if (verbs.length < 4) tips.push('Start more bullets with strong verbs like built, led, shipped or reduced.');
+  if (skillCount < 6) tips.push('List more relevant skills. Aim for at least 8 that match the jobs you want.');
+  if (words < 250) tips.push(`Your resume is short (${words} words). Add detail about what you achieved in each role.`);
+  if (words > 800) tips.push(`Your resume is long (${words} words). Trim it to one or two pages.`);
+  if (!tips.length) tips.push('Great work. Tailor your top three bullets to each job you apply for.');
 
-resumeInput.addEventListener("change", () => {
-  selectFile(resumeInput.files[0]);
-});
-
-browseButton.addEventListener("click", (event) => {
-  event.stopPropagation();
-  resumeInput.click();
-});
-
-dropzone.addEventListener("click", (event) => {
-  // The browse button has its own click handler.
-  if (event.target.closest("button")) return;
-
-  resumeInput.click();
-});
-
-dropzone.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    resumeInput.click();
-  }
-});
-
-["dragenter", "dragover"].forEach((eventName) => {
-  dropzone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    dropzone.classList.add("dragging");
-  });
-});
-
-["dragleave", "drop"].forEach((eventName) => {
-  dropzone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    dropzone.classList.remove("dragging");
-  });
-});
-
-dropzone.addEventListener("drop", (event) => {
-  const file = event.dataTransfer.files[0];
-  selectFile(file);
-});
-
-removeButton.addEventListener("click", resetUpload);
-
-function renderSkills(containerId, skills, isMissing = false) {
-  const container = document.getElementById(containerId);
-  container.replaceChildren();
-
-  skills.forEach((skillName) => {
-    const chip = document.createElement("span");
-
-    chip.className = isMissing ? "skill missing" : "skill";
-    chip.textContent = skillName;
-
-    container.appendChild(chip);
-  });
-}
-
-analyseButton.addEventListener("click", () => {
-  if (!selectedFile) {
-    showMessage("Please choose a PDF first.");
-    return;
+  // Optional job description match
+  let match = null;
+  if (job.trim()) {
+    const allSkills = Object.values(SKILLS).flat();
+    const wanted = allSkills.filter((s) => Object.values(findSkills(job)).flat().includes(s));
+    const have = wanted.filter((s) => Object.values(skills).flat().includes(s));
+    match = { wanted, have, missing: wanted.filter((s) => !have.includes(s)) };
   }
 
-  // DEMO ONLY: these values are not extracted from the PDF.
-  const demoScore = 76;
+  return { total, words, email, phone, linkedin, github, sections, skills, tips, match,
+    bars: [['Contact details', contact], ['Resume structure', structure], ['Skills', skillScore], ['Impact and action verbs', impact], ['Length', length]] };
+}
 
-  const presentSkills = [
-    "Python",
-    "HTML",
-    "CSS",
-    "JavaScript",
-    "Git",
-    "Problem Solving"
-  ];
+/* ========== 6. SHOW RESULTS ========== */
+// textContent is used everywhere so pasted text can never inject HTML.
+function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; }
 
-  const skillsToExplore = [
-    "SQL",
-    "React",
-    "REST APIs",
-    "Testing"
-  ];
+function renderChips(box, list, cls) { box.replaceChildren(...list.map((s) => el('span', 'chip ' + (cls || ''), s))); }
 
-  document.getElementById("score").textContent = demoScore;
+function runAnalysis() {
+  const text = resumeText.value;
+  if (text.trim().split(/\s+/).length < 30) { showError('Paste at least a few lines of your resume (30 words or more) to get a useful analysis.'); return; }
+  errorBox.hidden = true;
+  const r = analyze(text, jobText.value);
 
-  document.getElementById("score-label").textContent =
-    "Your sample report is ready";
+  $('scoreNum').textContent = r.total;
+  $('scoreRing').style.setProperty('--p', r.total);
+  const label = r.total >= 80 ? 'Strong resume' : r.total >= 60 ? 'Good start' : 'Needs work';
+  $('scoreTitle').textContent = label;
+  $('scoreText').textContent = `${r.words} words analyzed. ${r.tips.length} suggestion${r.tips.length === 1 ? '' : 's'} below.`;
 
-  document.getElementById("score-description").textContent =
-    "Explore this illustrative score and example skill breakdown.";
+  // Breakdown bars
+  $('bars').replaceChildren(...r.bars.map(([name, pct]) => {
+    const row = el('div', 'bar-row'), top = el('div', 'bar-label'), bar = el('div', 'bar'), fill = document.createElement('i');
+    top.append(el('span', '', name), el('strong', '', pct + '%'));
+    bar.append(fill); row.append(top, bar);
+    requestAnimationFrame(() => (fill.style.width = pct + '%'));
+    return row;
+  }));
 
-  const scoreRing = document.getElementById("score-ring");
+  // Contact list
+  const rows = [['Email', r.email], ['Phone', r.phone], ['LinkedIn', r.linkedin && 'Found'], ['GitHub', r.github && 'Found']];
+  $('contact').replaceChildren(...rows.map(([k, v]) => {
+    const li = el('li'); li.append(el('span', '', k), el('span', v ? 'ok' : 'miss', v || 'Missing')); return li;
+  }));
 
-  scoreRing.style.setProperty(
-    "--score-angle",
-    `${demoScore * 3.6}deg`
-  );
+  // Skills
+  const groups = Object.entries(r.skills);
+  const skillBox = $('skills');
+  skillBox.replaceChildren();
+  if (!groups.length) skillBox.append(el('p', 'muted', 'No known skills detected. Add a Skills section.'));
+  groups.forEach(([g, list]) => { const wrap = el('div', 'skill-group'); const c = el('div', 'chips'); renderChips(c, list); wrap.append(el('p', 'muted', g), c); skillBox.append(wrap); });
 
-  renderSkills("present-skills", presentSkills);
-  renderSkills("missing-skills", skillsToExplore, true);
+  // Job match
+  $('matchCard').hidden = !r.match;
+  if (r.match) {
+    const { wanted, have, missing } = r.match;
+    $('matchText').textContent = wanted.length ? `You match ${have.length} of ${wanted.length} skills in this job.` + (missing.length ? ' Missing skills:' : ' Nothing missing.') : 'No known skills were found in the job description.';
+    renderChips($('matchChips'), missing, 'gap');
+  }
 
-  results.classList.remove("hidden");
-
-  results.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-});
-
-document.getElementById("reset-btn").addEventListener("click", () => {
-  resetUpload();
-  results.classList.add("hidden");
-
-  document.getElementById("analyzer").scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-});
+  $('tips').replaceChildren(...r.tips.map((t) => el('li', '', t)));
+  results.hidden = false;
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
