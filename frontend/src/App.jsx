@@ -2,6 +2,9 @@
 import { useState } from "react";
 import "./App.css";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 function App() {
   const [resume, setResume] = useState(null);
   const [jobDescription, setJobDescription] = useState("");
@@ -32,7 +35,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/analyze",
+        `${API_BASE_URL}/api/analyze`,
         {
           method: "POST",
           body: formData,
@@ -47,9 +50,11 @@ function App() {
 
       setResult(data);
     } catch (err) {
+      console.error("Resume analysis error:", err);
+
       setError(
         err.message ||
-          "Could not connect to the backend. Check that it is running."
+          "Could not connect to the backend. Please try again."
       );
     } finally {
       setLoading(false);
@@ -73,7 +78,11 @@ function App() {
       }
 
       if (/^[-*•]\s+/.test(text)) {
-        return <p key={index}>• {text.replace(/^[-*••]\s+/, "")}</p>;
+        return (
+          <p key={index}>
+            • {text.replace(/^[-*•]\s+/, "")}
+          </p>
+        );
       }
 
       return <p key={index}>{text}</p>;
@@ -155,7 +164,9 @@ function App() {
             <span>01</span>
             <div>
               <h3>Match score</h3>
-              <p>See how many recognized job skills match your resume.</p>
+              <p>
+                See how many recognized job skills match your resume.
+              </p>
             </div>
           </div>
 
@@ -163,7 +174,9 @@ function App() {
             <span>02</span>
             <div>
               <h3>Matched skills</h3>
-              <p>Identify skills found in both the resume and job description.</p>
+              <p>
+                Identify skills found in both the resume and job description.
+              </p>
             </div>
           </div>
 
@@ -171,7 +184,9 @@ function App() {
             <span>03</span>
             <div>
               <h3>AI resume feedback</h3>
-              <p>Get suggestions to improve your resume for your target role.</p>
+              <p>
+                Get suggestions to improve your resume for your target role.
+              </p>
             </div>
           </div>
         </aside>
@@ -216,7 +231,8 @@ function App() {
           </div>
 
           <p className="disclaimer">
-            This keyword-based score is an estimate, not a prediction of hiring success.
+            This keyword-based score is an estimate, not a prediction of
+            hiring success.
           </p>
 
           <section className="ai-feedback">
@@ -229,8 +245,8 @@ function App() {
               </div>
             ) : (
               <p>
-                AI feedback is currently unavailable.
-                You can still use your skill-match results.
+                AI feedback is currently unavailable. You can still use
+                your skill-match results.
               </p>
             )}
           </section>
