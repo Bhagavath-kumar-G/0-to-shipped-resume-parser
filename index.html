@@ -4,81 +4,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>0 to Shipped | Resume Parser</title>
+  <meta name="theme-color" content="#f7f9fc">
+  <meta name="description" content="Explore your resume with 0 to Shipped, a clean and simple resume analysis demo.">
+  <title>0 to Shipped — Resume Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
 <body>
   <header class="navbar">
-    <a href="#" class="logo">0 to <span>Shipped</span></a>
-    <span class="tag">RESUME ANALYSER</span>
+    <a class="brand" href="#" aria-label="0 to Shipped home">
+      <span class="brand-mark">0<span>→</span></span>
+      <span>to Shipped</span>
+    </a>
+
+    <nav class="nav-right" aria-label="Main navigation">
+      <span class="demo-label"><span class="status-dot"></span> Frontend demo</span>
+      <a class="nav-link" href="#analyzer">Resume analyzer <span>↗</span></a>
+    </nav>
   </header>
 
-  <main class="container">
+  <main>
     <section class="hero">
-      <p class="eyebrow">YOUR CAREER, DECODED.</p>
-      <h1>Your resume.<br><span>Under the microscope.</span></h1>
-      <p class="subtitle">
-        Upload your resume and explore your skills with a simple,
-        interactive resume analysis demo.
-      </p>
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="sparkle">✳</span> YOUR NEXT OPPORTUNITY STARTS HERE</div>
+        <h1>Make your resume<br>work <span>smarter.</span></h1>
+        <p class="hero-description">
+          Get a clearer picture of your resume. Explore a sample score,
+          discover your skills, and see what you could learn next.
+        </p>
+
+        <div class="hero-points">
+          <span><span class="check">✓</span> Simple skill overview</span>
+          <span><span class="check">✓</span> PDF upload demo</span>
+          <span><span class="check">✓</span> No account required</span>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="Illustration of a resume report">
+        <div class="floating-card card-top">
+          <span class="mini-icon">✓</span>
+          <span><strong>Skills overview</strong><small>Ready to explore</small></span>
+        </div>
+
+        <div class="preview-sheet">
+          <div class="preview-heading">
+            <div class="avatar">CV</div>
+            <div><strong>Resume report</strong><small>Career snapshot</small></div>
+            <span class="preview-check">✓</span>
+          </div>
+          <div class="skeleton wide"></div>
+          <div class="skeleton medium"></div>
+          <div class="preview-divider"></div>
+          <small class="preview-label">SKILLS OVERVIEW</small>
+          <div class="preview-chips">
+            <span>Python</span><span>Git</span><span>Problem solving</span>
+          </div>
+          <div class="preview-divider"></div>
+          <div class="preview-bottom">
+            <div><small>Demo score</small><strong>76<span>/100</span></strong></div>
+            <div class="mini-ring">76</div>
+          </div>
+        </div>
+
+        <div class="floating-card card-bottom">
+          <span class="trend-icon">↗</span>
+          <span><strong>Keep growing</strong><small>Discover new skills</small></span>
+        </div>
+      </div>
     </section>
 
-    <section class="upload-card">
-      <div class="upload-icon">↑</div>
-      <h2>Drop your resume here</h2>
-      <p>Choose a PDF file to start your demo analysis.</p>
-
-      <label for="resume" class="upload-button">Choose PDF</label>
-      <input id="resume" type="file" accept=".pdf,application/pdf">
-
-      <p id="file-name" class="file-name">PDF files only</p>
-      <button id="analyse-btn" class="analyse-button" disabled>
-        Analyse Resume →
-      </button>
-      <p id="message" class="message" aria-live="polite"></p>
-    </section>
-
-    <section id="results" class="results hidden">
+    <section class="analyzer-section" id="analyzer">
       <div class="section-heading">
-        <p class="eyebrow">YOUR REPORT</p>
-        <h2>Resume breakdown</h2>
-        <p class="subtitle">Illustrative demo results, not a real ATS score.</p>
+        <span class="section-kicker">THE RESUME LAB</span>
+        <h2>Let's look at your resume.</h2>
+        <p>Upload a PDF to explore your demo report.</p>
+      </div>
+
+      <div class="upload-card">
+        <div class="upload-dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose or drop a PDF resume">
+          <input id="resume" type="file" accept=".pdf,application/pdf" hidden>
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 15.5v3A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Drop your resume here</h3>
+          <p>or <button class="browse-button" id="browse-btn" type="button">browse files</button> from your device</p>
+          <div class="file-support"><span>PDF</span> PDF files only <span class="support-divider">·</span> Demo upload, processed locally</div>
+        </div>
+
+        <div class="selected-file hidden" id="selected-file">
+          <div class="pdf-icon">PDF</div>
+          <div class="file-info">
+            <strong id="file-name">resume.pdf</strong>
+            <span id="file-size">Ready for demo</span>
+          </div>
+          <button id="remove-file" class="remove-button" type="button" aria-label="Remove selected file">×</button>
+        </div>
+
+        <button class="primary-button" id="analyse-btn" type="button" disabled>
+          Analyze my resume <span>→</span>
+        </button>
+        <p class="message" id="message" role="status" aria-live="polite"></p>
+        <p class="privacy-note"><span>♧</span> Your PDF isn't sent to a server in this demo.</p>
+      </div>
+    </section>
+
+    <section class="results-section hidden" id="results" aria-live="polite">
+      <div class="results-heading">
+        <div>
+          <span class="section-kicker">YOUR REPORT</span>
+          <h2>A snapshot of your resume.</h2>
+          <p>Here is an illustrative report for your uploaded file.</p>
+        </div>
+        <span class="sample-badge">Sample results</span>
       </div>
 
       <div class="score-card">
-        <div class="score-circle">
-          <span id="score">0</span>
-          <small>/ 100</small>
+        <div class="score-ring" id="score-ring">
+          <div class="score-ring-inner">
+            <strong id="score">76</strong>
+            <span>out of 100</span>
+          </div>
         </div>
-        <div>
-          <p class="eyebrow">RESUME SCORE</p>
-          <h3 id="score-label">Demo complete</h3>
-          <p id="score-description">Explore your sample skill report.</p>
-        </div>
-      </div>
-
-      <div class="skills-grid">
-        <div class="skills-card">
-          <h3>✓ Skills present</h3>
-          <p>Sample skills identified in this demo.</p>
-          <div id="present-skills" class="skill-list"></div>
-        </div>
-
-        <div class="skills-card">
-          <h3>＋ Skills to explore</h3>
-          <p>Example skills to compare against a target role.</p>
-          <div id="missing-skills" class="skill-list"></div>
+        <div class="score-content">
+          <span class="section-kicker">DEMO RESUME SCORE</span>
+          <h3 id="score-label">Your report is ready</h3>
+          <p id="score-description">This sample score illustrates how your report could look.</p>
+          <div class="score-legend"><span></span> Illustrative score only</div>
         </div>
       </div>
 
-      <button id="reset-btn" class="reset-button">Analyse another PDF</button>
+      <div class="skill-grid">
+        <article class="skill-card">
+          <div class="skill-card-heading">
+            <div class="skill-heading-icon present-icon">✓</div>
+            <div><h3>Skills present</h3><p>Example skills in your report</p></div>
+          </div>
+          <div class="skill-list" id="present-skills"></div>
+          <div class="skill-card-footer"><span class="footer-dot green-dot"></span> Sample detected skills</div>
+        </article>
+
+        <article class="skill-card">
+          <div class="skill-card-heading">
+            <div class="skill-heading-icon missing-icon">＋</div>
+            <div><h3>Skills to explore</h3><p>Examples for your learning roadmap</p></div>
+          </div>
+          <div class="skill-list" id="missing-skills"></div>
+          <div class="skill-card-footer"><span class="footer-dot orange-dot"></span> Illustrative suggestions</div>
+        </article>
+      </div>
+
+      <div class="report-note">
+        <span class="note-icon">i</span>
+        <p><strong>About this report</strong><br>This is a frontend demonstration. The PDF contents are not read, and the score and skill lists are sample data rather than an assessment of your actual resume.</p>
+      </div>
+
+      <button class="secondary-button" id="reset-btn" type="button">↑ Analyze another PDF</button>
     </section>
 
-    <p class="disclaimer">
-      DEMO PROJECT · Your PDF is not uploaded to a server.
-      Scores and skills shown are illustrative.
-    </p>
+    <section class="bottom-cta">
+      <div class="cta-icon">✳</div>
+      <div><h3>Every great career starts somewhere.</h3><p>Take one small step toward your next opportunity.</p></div>
+      <a href="#analyzer" class="cta-link">Get started ↑</a>
+    </section>
   </main>
+
+  <footer class="footer">
+    <a class="brand footer-brand" href="#"><span class="brand-mark">0<span>→</span></span><span>to Shipped</span></a>
+    <p>Built to help you take the next step. <span>© 2026 0 to Shipped</span></p>
+  </footer>
 </body>
 </html>

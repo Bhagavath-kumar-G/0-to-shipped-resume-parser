@@ -1,43 +1,144 @@
 
 const resumeInput = document.getElementById("resume");
+const dropzone = document.getElementById("dropzone");
+const browseButton = document.getElementById("browse-btn");
+const selectedFileCard = document.getElementById("selected-file");
 const fileName = document.getElementById("file-name");
-const analyseBtn = document.getElementById("analyse-btn");
+const fileSize = document.getElementById("file-size");
+const removeButton = document.getElementById("remove-file");
+const analyseButton = document.getElementById("analyse-btn");
 const message = document.getElementById("message");
 const results = document.getElementById("results");
 
 let selectedFile = null;
 
-resumeInput.addEventListener("change", () => {
-  const file = resumeInput.files[0];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
-  message.textContent = "";
-  selectedFile = null;
-  analyseBtn.disabled = true;
+function showMessage(text) {
+  message.textContent = text;
+}
 
-  if (!file) {
-    fileName.textContent = "PDF files only";
+function formatFileSize(bytes) {
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function selectFile(file) {
+  showMessage("");
+
+  if (!file) return;
+
+  const isPdf =
+    file.type === "application/pdf" ||
+    file.name.toLowerCase().endsWith(".pdf");
+
+  if (!isPdf) {
+    showMessage("Please choose a PDF file.");
     return;
   }
 
-  if (
-    file.type !== "application/pdf" &&
-    !file.name.toLowerCase().endsWith(".pdf")
-  ) {
-    fileName.textContent = "PDF files only";
-    message.textContent = "Please select a PDF file.";
-    resumeInput.value = "";
+  if (file.size === 0) {
+    showMessage("This file is empty. Please choose another PDF.");
+    return;
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    showMessage("Please choose a PDF smaller than 10 MB.");
     return;
   }
 
   selectedFile = file;
+
   fileName.textContent = file.name;
-  analyseBtn.disabled = false;
+  fileSize.textContent = `${formatFileSize(file.size)} · Ready for demo`;
+
+  selectedFileCard.classList.remove("hidden");
+  dropzone.classList.add("hidden");
+  analyseButton.disabled = false;
+}
+
+function resetUpload() {
+  selectedFile = null;
+  resumeInput.value = "";
+
+  selectedFileCard.classList.add("hidden");
+  dropzone.classList.remove("hidden");
+  analyseButton.disabled = true;
+
+  showMessage("");
+}
+
+resumeInput.addEventListener("change", () => {
+  selectFile(resumeInput.files[0]);
 });
 
-analyseBtn.addEventListener("click", () => {
-  if (!selectedFile) return;
+browseButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+  resumeInput.click();
+});
 
-  const present = [
+dropzone.addEventListener("click", (event) => {
+  // The browse button has its own click handler.
+  if (event.target.closest("button")) return;
+
+  resumeInput.click();
+});
+
+dropzone.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    resumeInput.click();
+  }
+});
+
+["dragenter", "dragover"].forEach((eventName) => {
+  dropzone.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    dropzone.classList.add("dragging");
+  });
+});
+
+["dragleave", "drop"].forEach((eventName) => {
+  dropzone.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    dropzone.classList.remove("dragging");
+  });
+});
+
+dropzone.addEventListener("drop", (event) => {
+  const file = event.dataTransfer.files[0];
+  selectFile(file);
+});
+
+removeButton.addEventListener("click", resetUpload);
+
+function renderSkills(containerId, skills, isMissing = false) {
+  const container = document.getElementById(containerId);
+  container.replaceChildren();
+
+  skills.forEach((skillName) => {
+    const chip = document.createElement("span");
+
+    chip.className = isMissing ? "skill missing" : "skill";
+    chip.textContent = skillName;
+
+    container.appendChild(chip);
+  });
+}
+
+analyseButton.addEventListener("click", () => {
+  if (!selectedFile) {
+    showMessage("Please choose a PDF first.");
+    return;
+  }
+
+  // DEMO ONLY: these values are not extracted from the PDF.
+  const demoScore = 76;
+
+  const presentSkills = [
     "Python",
     "HTML",
     "CSS",
@@ -46,48 +147,45 @@ analyseBtn.addEventListener("click", () => {
     "Problem Solving"
   ];
 
-  const missing = [
+  const skillsToExplore = [
     "SQL",
     "React",
     "REST APIs",
     "Testing"
   ];
 
-  // Illustrative demo score, not calculated from the PDF.
-  const score = 76;
+  document.getElementById("score").textContent = demoScore;
 
-  document.getElementById("score").textContent = score;
   document.getElementById("score-label").textContent =
-    "Demo analysis complete";
-  document.getElementById("score-description").textContent =
-    "This is a sample score for demonstration purposes.";
+    "Your sample report is ready";
 
-  renderSkills("present-skills", present, false);
-  renderSkills("missing-skills", missing, true);
+  document.getElementById("score-description").textContent =
+    "Explore this illustrative score and example skill breakdown.";
+
+  const scoreRing = document.getElementById("score-ring");
+
+  scoreRing.style.setProperty(
+    "--score-angle",
+    `${demoScore * 3.6}deg`
+  );
+
+  renderSkills("present-skills", presentSkills);
+  renderSkills("missing-skills", skillsToExplore, true);
 
   results.classList.remove("hidden");
-  results.scrollIntoView({ behavior: "smooth" });
-});
 
-function renderSkills(elementId, skills, isMissing) {
-  const container = document.getElementById(elementId);
-  container.replaceChildren();
-
-  skills.forEach((skillName) => {
-    const chip = document.createElement("span");
-    chip.className = isMissing ? "skill missing" : "skill";
-    chip.textContent = skillName;
-    container.appendChild(chip);
+  results.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
   });
-}
+});
 
 document.getElementById("reset-btn").addEventListener("click", () => {
-  resumeInput.value = "";
-  selectedFile = null;
-  fileName.textContent = "PDF files only";
-  message.textContent = "";
-  analyseBtn.disabled = true;
+  resetUpload();
   results.classList.add("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  document.getElementById("analyzer").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 });
-    
